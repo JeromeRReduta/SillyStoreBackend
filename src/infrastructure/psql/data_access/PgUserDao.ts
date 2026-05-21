@@ -69,7 +69,13 @@ export default class PgUserDao implements IUserDao {
     }: IGetUserByCredentialsRequest): Promise<IUserResponse | null> {
         const sql: QueryConfig = {
             text: `
-                    SELECT * FROM users
+                    SELECT
+                        id,
+                        username,
+                        email,
+                        pw_hash,
+                        role
+                    FROM user_view
                     WHERE email = $1
                 `,
             values: [email],

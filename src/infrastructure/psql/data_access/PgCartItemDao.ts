@@ -14,40 +14,14 @@ import {
     IGetCartItemsInOrderRequest,
 } from "../../../../SillyStoreCommon/dtos/cartItemDtos.ts";
 import PgDaos from "../../data_access/PgDaos.ts";
+import backendLogger from "../../../configs/BackendLogger.ts";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default class PgCartItemDao implements ICartItemDao {
     private db: Client | Pool;
-    private formattedOrderSql: string;
-    private withDetailedCartItemSql: string;
 
     constructor(db: Client | Pool) {
         this.db = db;
-        this.formattedOrderSql = `
-            id,
-            TO_CHAR(date, 'yyyy-mm-dd') AS date,
-            user_id,
-            status
-        `;
-        this.withDetailedCartItemSql = `
-            WITH detailed_cart_items AS (
-                SELECT 
-                    o.user_id AS creator_id,
-                    o.id AS order_id,
-                    p.id AS product_id,
-                    p.description,
-                    p.image_src,
-                    p.price,
-                    c.quantity,
-                    o.status,
-                    p.title
-                FROM cart_items AS c
-                JOIN products AS p
-                    ON p.id = c.product_id
-                JOIN orders AS o
-                    ON o.id = c.order_id
-            )
-        `;
     }
 
     async createAsync({
@@ -58,7 +32,6 @@ export default class PgCartItemDao implements ICartItemDao {
         const sql: QueryConfig = {
             text: `
                 INSERT INTO cart_items (order_id, product_id, quantity)
-
                 VALUES ($1, $2, $3)
                 ON CONFLICT (order_id, product_id) DO UPDATE
                     SET quantity = $3
@@ -66,9 +39,30 @@ export default class PgCartItemDao implements ICartItemDao {
             `,
             values: [orderId, productId, quantity],
         };
+        void (await PgDaos.queryAsync(this.db, sql, PgDaos.cartItemMapper));
+        const nextSql: QueryConfig = {
+            text: `
+                SELECT
+                    order_id,
+                    product_id,
+                    status,
+                    user_id,
+                    description,
+                    image_src,
+                    price,
+                    quantity,
+                    title
+                FROM cart_item_view
+                WHERE
+                    order_id = $1
+                    AND product_id = $2
+            `,
+            values: [orderId, productId],
+        };
+
         const rows: ICartItemResponse[] = await PgDaos.queryAsync(
             this.db,
-            sql,
+            nextSql,
             PgDaos.cartItemMapper,
         );
         if (rows.length !== 1) {
@@ -79,45 +73,36 @@ export default class PgCartItemDao implements ICartItemDao {
         }
         return rows[0];
     }
-    async getAllAsync(dto: IGetAllCartItemsRequest): Promise<ICartItem[]> {
+    async getAllAsync(_dto: IGetAllCartItemsRequest): Promise<ICartItem[]> {
         throw new Error("Method not implemented.");
     }
-    async getAsync(dto: IGetCartItemRequest): Promise<ICartItem | null> {
+    async getAsync(_dto: IGetCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
-    async updateAsync(dto: IUpdateCartItemRequest): Promise<ICartItem | null> {
+    async updateAsync(_dto: IUpdateCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
-    async deleteAsync(dto: IDeleteCartItemRequest): Promise<ICartItem | null> {
+    async deleteAsync(_dto: IDeleteCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
     async getAllPendingAsync({
         creatorId,
     }: IGetPendingCartItemsRequest): Promise<ICartItemResponse[]> {
-        // readonly creator_id?: ICartItem["creatorId"];
-        // readonly order_id: ICartItem["orderId"];
-        // readonly product_id: ICartItem["productId"];
-        // readonly description: ICartItem["description"];
-        // readonly image_src: ICartItem["imageSrc"];
-        // readonly price: ICartItem["price"];
-        // readonly quantity: ICartItem["quantity"];
-        // readonly title: ICartItem["title"];
-
         const sql: QueryConfig = {
             text: `
-                ${this.withDetailedCartItemSql}
                 SELECT 
-                    creator_id,
                     order_id,
                     product_id,
+                    status,
+                    creator_id,
                     description,
                     image_src,
                     price,
                     quantity,
-                    title    
-                FROM detailed_cart_items
-                WHERE detailed_cart_items.status = 'pending'
-                    AND detailed_cart_items.creator_id = $1
+                    title
+                FROM cart_item_view
+                WHERE status = 'pending'
+                    AND creator_id = $1
             `,
             values: [creatorId],
         };
@@ -130,7 +115,6 @@ export default class PgCartItemDao implements ICartItemDao {
     }: IGetCartItemsInOrderRequest): Promise<ICartItemResponse[]> {
         const sql: QueryConfig = {
             text: `
-                ${this.withDetailedCartItemSql}
                 SELECT
                     creator_id,
                     order_id,
@@ -139,10 +123,10 @@ export default class PgCartItemDao implements ICartItemDao {
                     image_src,
                     price,
                     quantity,
-                    title    
-                FROM detailed_cart_items
-                WHERE detailed_cart_items.creator_id = $1
-                    AND detailed_cart_items.order_id = $2
+                    title      
+                FROM cart_item_view
+                WHERE creator_id = $1
+                    AND order_id = $2
             `,
             values: [creatorId, orderId],
         };
@@ -150,7 +134,7 @@ export default class PgCartItemDao implements ICartItemDao {
     }
 
     async mergeCartInOrderAsync(
-        dto: IMergeCartItemsInOrderRequest,
+        _dto: IMergeCartItemsInOrderRequest,
     ): Promise<ICartItemResponse[]> {
         throw new Error("Method not implemented.");
     }
@@ -158,16 +142,18 @@ export default class PgCartItemDao implements ICartItemDao {
         creatorId,
         cartItems,
     }: IMergePendingCartItemsRequest): Promise<void> {
-        await this.db.query({
+        const newOrder = await this.db.query({
             text: `
             INSERT into orders (date, status, user_id)
             VALUES (CURRENT_DATE, 'pending', $1)
             ON CONFLICT
                 DO NOTHING
-            RETURNING ${this.formattedOrderSql}
+            RETURNING 
+                *
             `,
             values: [creatorId],
         });
+        backendLogger.debug("new order", newOrder);
         const getIdSql: QueryConfig = {
             text: `
                 SELECT DISTINCT id FROM orders
@@ -179,8 +165,11 @@ export default class PgCartItemDao implements ICartItemDao {
         const idRows: number[] = await PgDaos.queryAsync(
             this.db,
             getIdSql,
-            (e: { id: number }) => e.id,
+            (e: { id: number }) => {
+                return e.id;
+            },
         );
+        backendLogger.debug("id rows", idRows);
         if (idRows.length !== 1) {
             throw new Error(
                 "idk what happened but the sql messed up here - should always return 1",
@@ -220,7 +209,6 @@ export default class PgCartItemDao implements ICartItemDao {
                 DELETE FROM cart_items
                     WHERE order_id = $1
                     AND product_id NOT IN (SELECT product_id FROM upsert)
-
             `,
             values: [pendingOrderId],
         });

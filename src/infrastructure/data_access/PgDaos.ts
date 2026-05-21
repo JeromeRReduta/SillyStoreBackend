@@ -16,103 +16,98 @@ import { IPgProduct } from "../psql/entities/IPgProduct.ts";
 import { IPgUser } from "../psql/entities/IPgUser.ts";
 
 /** Util class for daos using PG's Client or Pool */
-export default class PgDaos {
-    static userMapper: IPgDataMapper<IPgUser, IUserResponse> = function ({
-        id,
-        username,
-        email,
-        role,
-    }: IPgUser): IUserResponse {
-        return { id, username, email, role };
-    };
 
-    static userWithPwHashMapper: IPgDataMapper<
-        IPgUser,
-        IUserWithPwHashResponse
-    > = function (pgUser: IPgUser): IUserWithPwHashResponse {
-        return { ...PgDaos.userMapper(pgUser), pwHash: pgUser.pw_hash };
-    };
+function userMapper({ id, username, email, role }: IPgUser): IUserResponse {
+    return { id, username, email, role };
+}
 
-    static orderMapper: IPgDataMapper<IPgOrder, IOrderResponse> = function ({
-        id,
-        date,
-        user_id,
-        status,
-    }: IPgOrder): IOrderResponse {
-        return { id, dateStr: date, userId: user_id, status };
-    };
+function userWithPwHashMapper(pgUser: IPgUser): IUserWithPwHashResponse {
+    return { ...userMapper(pgUser), pwHash: pgUser.pw_hash };
+}
 
-    static productMapper: IPgDataMapper<IPgProduct, IProductResponse> =
-        function ({
-            id,
-            image_src,
-            title,
-            description,
-            price,
-        }: IPgProduct): IProductResponse {
-            return { id, imageSrc: image_src, title, description, price };
-        };
+function orderMapper({ id, date, user_id, status }: IPgOrder): IOrderResponse {
+    return { id, dateStr: date, userId: user_id, status };
+}
 
-    static cartItemMapper: IPgDataMapper<IPgCartItem, ICartItemResponse> =
-        function ({
-            creator_id,
-            order_id,
-            product_id,
-            description,
-            image_src,
-            price,
-            quantity,
-            title,
-        }): ICartItemResponse {
-            return {
-                creatorId: creator_id,
-                orderId: order_id,
-                productId: product_id,
-                description,
-                imageSrc: image_src,
-                price,
-                quantity,
-                title,
-            };
-        };
+function productMapper({
+    id,
+    image_src,
+    title,
+    description,
+    price,
+}: IPgProduct): IProductResponse {
+    return { id, imageSrc: image_src, title, description, price };
+}
 
-    static cartItemWithCreatorMapper: IPgDataMapper<
-        Required<IPgCartItem>,
-        ICartItemResponseWithCreator
-    > = function ({
-        creator_id,
-        order_id,
-        product_id,
+function cartItemMapper({
+    creator_id,
+    order_id,
+    product_id,
+    description,
+    image_src,
+    price,
+    quantity,
+    title,
+}: IPgCartItem): ICartItemResponse {
+    return {
+        creatorId: creator_id,
+        orderId: order_id,
+        productId: product_id,
         description,
-        image_src,
+        imageSrc: image_src,
         price,
         quantity,
         title,
-    }: Required<IPgCartItem>): ICartItemResponseWithCreator {
-        return {
-            creatorId: creator_id,
-            orderId: order_id,
-            productId: product_id,
-            description,
-            imageSrc: image_src,
-            price,
-            quantity,
-            title,
-        };
     };
+}
 
-    static async queryAsync<TPgEntity, TResponse>(
-        db: Client | Pool,
-        sql: QueryConfig,
-        dataMapper: IPgDataMapper<TPgEntity, TResponse>,
-    ): Promise<TResponse[]> {
-        backendLogger.debug("sql: ", sql);
-        const { rows } = await db.query(sql);
-        backendLogger.debug("result: ", rows);
-        return (rows as TPgEntity[]).map(dataMapper); // we trust db to return correct PgEntity type
-    }
+function cartItemWithCreatorMapper({
+    creator_id,
+    order_id,
+    product_id,
+    description,
+    image_src,
+    price,
+    quantity,
+    title,
+}: Required<IPgCartItem>): ICartItemResponseWithCreator {
+    return {
+        creatorId: creator_id,
+        orderId: order_id,
+        productId: product_id,
+        description,
+        imageSrc: image_src,
+        price,
+        quantity,
+        title,
+    };
+}
+
+async function queryAsync<TPgEntity, TResponse>(
+    db: Client | Pool,
+    sql: QueryConfig,
+    dataMapper: IPgDataMapper<TPgEntity, TResponse>,
+): Promise<TResponse[]> {
+    backendLogger.debug("sql: ", sql);
+    const { rows } = await db.query(sql);
+    backendLogger.debug("result: ", rows);
+    backendLogger.debug(
+        "THING HERE TOO",
+        (rows as TPgEntity[]).map(dataMapper),
+    );
+    return (rows as TPgEntity[]).map(dataMapper); // we trust db to return correct PgEntity type
 }
 
 export type IPgDataMapper<TPgEntity, TResponse> = (
     entity: TPgEntity,
 ) => TResponse;
+
+export default {
+    userMapper,
+    userWithPwHashMapper,
+    orderMapper,
+    productMapper,
+    cartItemMapper,
+    cartItemWithCreatorMapper,
+    queryAsync,
+};
