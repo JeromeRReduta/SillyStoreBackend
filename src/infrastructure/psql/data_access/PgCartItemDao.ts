@@ -19,36 +19,9 @@ import backendLogger from "../../../configs/BackendLogger.ts";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default class PgCartItemDao implements ICartItemDao {
     private db: Client | Pool;
-    private formattedOrderSql: string;
-    private withDetailedCartItemSql: string;
 
     constructor(db: Client | Pool) {
         this.db = db;
-        this.formattedOrderSql = `
-            id,
-            TO_CHAR(date, 'yyyy-mm-dd') AS date,
-            user_id,
-            status
-        `;
-        this.withDetailedCartItemSql = `
-            WITH detailed_cart_items AS (
-                SELECT 
-                    o.user_id AS creator_id,
-                    o.id AS order_id,
-                    p.id AS product_id,
-                    p.description,
-                    p.image_src,
-                    p.price::decimal::float8,
-                    c.quantity,
-                    o.status,
-                    p.title
-                FROM cart_items AS c
-                JOIN products AS p
-                    ON p.id = c.product_id
-                JOIN orders AS o
-                    ON o.id = c.order_id
-            )
-        `;
     }
 
     async createAsync({
@@ -67,9 +40,30 @@ export default class PgCartItemDao implements ICartItemDao {
             `,
             values: [orderId, productId, quantity],
         };
+        void (await PgDaos.queryAsync(this.db, sql, PgDaos.cartItemMapper));
+        const nextSql: QueryConfig = {
+            text: `
+                SELECT
+                    order_id,
+                    product_id,
+                    status,
+                    user_id,
+                    description,
+                    image_src,
+                    price,
+                    quantity,
+                    title
+                FROM cart_item_view
+                WHERE
+                    order_id = $1
+                    AND product_id = $2
+            `,
+            values: [orderId, productId],
+        };
+
         const rows: ICartItemResponse[] = await PgDaos.queryAsync(
             this.db,
-            sql,
+            nextSql,
             PgDaos.cartItemMapper,
         );
         if (rows.length !== 1) {
@@ -95,18 +89,8 @@ export default class PgCartItemDao implements ICartItemDao {
     async getAllPendingAsync({
         creatorId,
     }: IGetPendingCartItemsRequest): Promise<ICartItemResponse[]> {
-        // readonly creator_id?: ICartItem["creatorId"];
-        // readonly order_id: ICartItem["orderId"];
-        // readonly product_id: ICartItem["productId"];
-        // readonly description: ICartItem["description"];
-        // readonly image_src: ICartItem["imageSrc"];
-        // readonly price: ICartItem["price"];
-        // readonly quantity: ICartItem["quantity"];
-        // readonly title: ICartItem["title"];
-
         const sql: QueryConfig = {
             text: `
-                ${this.withDetailedCartItemSql}
                 SELECT 
                     creator_id,
                     order_id,
@@ -116,9 +100,9 @@ export default class PgCartItemDao implements ICartItemDao {
                     price,
                     quantity,
                     title    
-                FROM detailed_cart_items
-                WHERE detailed_cart_items.status = 'pending'
-                    AND detailed_cart_items.creator_id = $1
+                FROM cart_item_view;
+                WHERE status = 'pending'
+                    AND creator_id = $1
             `,
             values: [creatorId],
         };
@@ -131,7 +115,6 @@ export default class PgCartItemDao implements ICartItemDao {
     }: IGetCartItemsInOrderRequest): Promise<ICartItemResponse[]> {
         const sql: QueryConfig = {
             text: `
-                ${this.withDetailedCartItemSql}
                 SELECT
                     creator_id,
                     order_id,
@@ -140,10 +123,10 @@ export default class PgCartItemDao implements ICartItemDao {
                     image_src,
                     price,
                     quantity,
-                    title    
-                FROM detailed_cart_items
-                WHERE detailed_cart_items.creator_id = $1
-                    AND detailed_cart_items.order_id = $2
+                    title      
+                FROM cart_item_view
+                WHERE creator_id = $1
+                    AND order_id = $2
             `,
             values: [creatorId, orderId],
         };
@@ -165,7 +148,15 @@ export default class PgCartItemDao implements ICartItemDao {
             VALUES (CURRENT_DATE, 'pending', $1)
             ON CONFLICT
                 DO NOTHING
-            RETURNING ${this.formattedOrderSql}
+            RETURNING 
+                creator_id,
+                order_id,
+                product_id,
+                description,
+                image_src,
+                price,
+                quantity,
+                title    
             `,
             values: [creatorId],
         });
@@ -225,7 +216,6 @@ export default class PgCartItemDao implements ICartItemDao {
                 DELETE FROM cart_items
                     WHERE order_id = $1
                     AND product_id NOT IN (SELECT product_id FROM upsert)
-
             `,
             values: [pendingOrderId],
         });
