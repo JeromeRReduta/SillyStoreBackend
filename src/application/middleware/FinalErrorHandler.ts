@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import HttpError from "../../errors/HttpError.ts";
 import backendLogger from "../../configs/BackendLogger.ts";
+
 export default function finalErrorHandler(
     err: HttpError,
     _req: Request<object, string, object>,

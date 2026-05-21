@@ -1,6 +1,7 @@
 import { Client, QueryConfig } from "pg";
 import { Quantities } from "./seed.ts";
-import backendLogger from "../../configs/BackendLogger.ts";
+import backendLogger from "../../../configs/BackendLogger.ts";
+
 export default async function seedOrders(
     db: Client,
     { users, ordersPerUser }: Quantities,

@@ -1,10 +1,10 @@
-import backendLogger from "../../configs/BackendLogger.ts";
 import { type Client } from "pg";
 import seedUsers from "./seedUsers.ts";
 import seedProducts from "./seedProducts.ts";
 import seedOrders from "./seedOrders.ts";
 import seedCartItems from "./seedCartItems.ts";
-import apiConfigs from "../../configs/ApiConfigs.ts";
+import apiConfigs from "../../../configs/ApiConfigs.ts";
+import backendLogger from "../../../configs/BackendLogger.ts";
 
 export interface Quantities {
     readonly users: number;
