@@ -7,27 +7,18 @@ import {
     IUpdateOrderRequest,
     IDeleteOrderRequest,
     IGetAllPendingOrdersRequest,
+    IUpdatePendingOrderRequest,
 } from "../../../../SillyStoreCommon/dtos/orderDtos.ts";
 import backendLogger from "../../../configs/BackendLogger.ts";
-import {
-    IOrderDao,
-    IUpdatePendingOrderRequest,
-} from "../../data_access/IOrderDao.ts";
+import { IOrderDao } from "../../data_access/IOrderDao.ts";
 import PgDaos from "../../data_access/PgDaos.ts";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default class PgOrderDao implements IOrderDao {
     private db: Client | Pool;
-    private formattedOrderSql: string;
 
     constructor(db: Client | Pool) {
         this.db = db;
-        this.formattedOrderSql = `
-            id,
-            TO_CHAR(date, 'yyyy-mm-dd') AS date,
-            user_id,
-            status
-        `;
     }
 
     async createAsync({
@@ -39,8 +30,12 @@ export default class PgOrderDao implements IOrderDao {
             text: `
                 INSERT INTO orders (date, user_id, status)
                 VALUES ($1, $2, $3)
-                RETURNING ${this.formattedOrderSql}
-            `,
+                RETURNING
+                    id,
+                    date,
+                    user_id,
+                    status
+                `,
             values: [dateStr, userId, status],
         };
         const rows: IOrderResponse[] = await PgDaos.queryAsync(
@@ -61,8 +56,11 @@ export default class PgOrderDao implements IOrderDao {
         const sql: QueryConfig = {
             text: `
                 SELECT
-                ${this.formattedOrderSql}
-                FROM orders
+                    id,
+                    date,
+                    user_id,
+                    status
+                FROM order_view
                 ${role === "client" ? "WHERE user_id = $1" : ""}
             `,
             values: role === "client" ? [userId] : [],
@@ -74,8 +72,11 @@ export default class PgOrderDao implements IOrderDao {
         const sql: QueryConfig = {
             text: `
                 SELECT
-                ${this.formattedOrderSql}
-                FROM orders
+                    id,
+                    date,
+                    user_id,
+                    status
+                FROM order_view
                 WHERE id = $1
             `,
             values: [id],
@@ -110,7 +111,11 @@ export default class PgOrderDao implements IOrderDao {
                 WHERE
                     id = $3
                     ${role === "client" ? "AND user_id = $4" : ""}
-                RETURNING ${this.formattedOrderSql}
+                RETURNING
+                    id,
+                    date,
+                    user_id,
+                    status
             `,
             values:
                 role === "client"
@@ -141,8 +146,11 @@ export default class PgOrderDao implements IOrderDao {
         const sql: QueryConfig = {
             text: `
                 SELECT
-                    ${this.formattedOrderSql}
-                FROM orders
+                    id,
+                    date,
+                    user_id,
+                    status
+                FROM order_view
                 WHERE
                     status = 'pending'
                     ${role === "client" ? "AND user_id = $1" : ""}
@@ -169,7 +177,11 @@ export default class PgOrderDao implements IOrderDao {
                 WHERE
                     user_id = $3
                     AND status = 'pending' 
-                RETURNING ${this.formattedOrderSql}
+                RETURNING
+                    id,
+                    date,
+                    user_id,
+                    status
             `,
             values: [processed.dateStr, processed.status, userId],
         };
