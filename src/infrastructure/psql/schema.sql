@@ -43,3 +43,43 @@ CREATE TABLE cart_items (
     quantity INT NOT NULL,
     PRIMARY KEY (order_id, product_id)
 );
+
+CREATE VIEW order_view AS 
+    SELECT
+        o.id,
+        TO_CHAR(o.date, 'yyyy-mm-dd') AS date,
+        o.user_id,
+        status
+    FROM orders AS o;
+
+CREATE VIEW product_view AS
+    SELECT
+        p.id,
+        p.image_src,
+        p.title,
+        p.description,
+        p.price::decimal::float8
+    FROM products AS p;
+
+CREATE VIEW user_view AS 
+    SELECT * FROM users; -- for now, just get whatever user has
+
+CREATE VIEW cart_item_view AS 
+    SELECT
+        c.order_id,
+        c.product_id,
+        o.status,
+        o.user_id AS creator_id,
+        p.description,
+        p.image_src,
+        p.price::decimal::float8,
+        c.quantity,
+        p.title
+    FROM
+        cart_items AS c
+    JOIN
+        orders AS o
+            ON c.order_id = o.id
+    JOIN
+        products AS p
+            ON c.product_id = p.id;

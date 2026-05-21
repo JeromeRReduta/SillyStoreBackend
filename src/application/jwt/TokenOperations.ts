@@ -5,6 +5,7 @@ import {
     TokenResponse,
 } from "../../../SillyStoreCommon/dtos/userDtos.ts";
 import { UserRole } from "../../../SillyStoreCommon/domain-objects/User.ts";
+import backendLogger from "../../configs/BackendLogger.ts";
 
 const SECRET: jwt.Secret = backendConfigs.jwt.secret;
 

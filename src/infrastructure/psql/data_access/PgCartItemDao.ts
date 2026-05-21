@@ -14,6 +14,7 @@ import {
     IGetCartItemsInOrderRequest,
 } from "../../../../SillyStoreCommon/dtos/cartItemDtos.ts";
 import PgDaos from "../../data_access/PgDaos.ts";
+import backendLogger from "../../../configs/BackendLogger.ts";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default class PgCartItemDao implements ICartItemDao {
@@ -37,7 +38,7 @@ export default class PgCartItemDao implements ICartItemDao {
                     p.id AS product_id,
                     p.description,
                     p.image_src,
-                    p.price,
+                    p.price::decimal::float8,
                     c.quantity,
                     o.status,
                     p.title
@@ -158,7 +159,7 @@ export default class PgCartItemDao implements ICartItemDao {
         creatorId,
         cartItems,
     }: IMergePendingCartItemsRequest): Promise<void> {
-        await this.db.query({
+        const newOrder = await this.db.query({
             text: `
             INSERT into orders (date, status, user_id)
             VALUES (CURRENT_DATE, 'pending', $1)
@@ -168,6 +169,7 @@ export default class PgCartItemDao implements ICartItemDao {
             `,
             values: [creatorId],
         });
+        backendLogger.debug("new order", newOrder);
         const getIdSql: QueryConfig = {
             text: `
                 SELECT DISTINCT id FROM orders
@@ -179,8 +181,11 @@ export default class PgCartItemDao implements ICartItemDao {
         const idRows: number[] = await PgDaos.queryAsync(
             this.db,
             getIdSql,
-            (e: { id: number }) => e.id,
+            (e: { id: number }) => {
+                return e.id;
+            },
         );
+        backendLogger.debug("id rows", idRows);
         if (idRows.length !== 1) {
             throw new Error(
                 "idk what happened but the sql messed up here - should always return 1",

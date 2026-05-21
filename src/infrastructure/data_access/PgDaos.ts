@@ -109,6 +109,10 @@ export default class PgDaos {
         backendLogger.debug("sql: ", sql);
         const { rows } = await db.query(sql);
         backendLogger.debug("result: ", rows);
+        backendLogger.debug(
+            "THING HERE TOO",
+            (rows as TPgEntity[]).map(dataMapper),
+        );
         return (rows as TPgEntity[]).map(dataMapper); // we trust db to return correct PgEntity type
     }
 }

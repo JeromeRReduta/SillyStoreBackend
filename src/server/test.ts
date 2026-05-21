@@ -84,17 +84,13 @@ const testServices = {
     users: new UserClientService(testDaos.users!),
     products: new ProductClientService(testDaos.products!),
 };
-
-setupUserInfo(app);
+app.use(processToken);
+setUpViewRoutes(app);
 setupUserRoutes(app);
 setupProductRoutes(app);
 setupOrderRoutes(app);
 setupCartItemRoutes(app);
 initApp(app);
-
-function setupUserInfo(app: Express): void {
-    app.use(processToken);
-}
 
 function setupUserRoutes(app: Express): void {
     app.route("/users/register").post(
@@ -127,6 +123,28 @@ function setupUserRoutes(app: Express): void {
             );
         },
     );
+}
+function setUpViewRoutes(app: Express): void {
+    app.route("/views/orders").get(async (req, res, next) => {
+        const { rows } = await db.query(`SELECT * FROM order_view`);
+        res.status(HttpStatus.OK).send(rows);
+    });
+
+    app.route("/views/products").get(async (req, res, next) => {
+        const { rows } = await db.query(`SELECT * FROM product_view`);
+
+        res.status(HttpStatus.OK).send(rows);
+    });
+
+    app.route("/views/users").get(async (req, res, next) => {
+        const { rows } = await db.query(`SELECT * FROM user_view`);
+        res.status(HttpStatus.OK).send(rows);
+    });
+
+    app.route("/views/cart-items").get(async (req, res, next) => {
+        const { rows } = await db.query(`SELECT * FROM cart_item_view`);
+        res.status(HttpStatus.OK).send(rows);
+    });
 }
 
 function setupProductRoutes(app: Express): void {
