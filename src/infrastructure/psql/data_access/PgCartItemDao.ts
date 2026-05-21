@@ -32,7 +32,6 @@ export default class PgCartItemDao implements ICartItemDao {
         const sql: QueryConfig = {
             text: `
                 INSERT INTO cart_items (order_id, product_id, quantity)
-
                 VALUES ($1, $2, $3)
                 ON CONFLICT (order_id, product_id) DO UPDATE
                     SET quantity = $3
@@ -74,16 +73,16 @@ export default class PgCartItemDao implements ICartItemDao {
         }
         return rows[0];
     }
-    async getAllAsync(dto: IGetAllCartItemsRequest): Promise<ICartItem[]> {
+    async getAllAsync(_dto: IGetAllCartItemsRequest): Promise<ICartItem[]> {
         throw new Error("Method not implemented.");
     }
-    async getAsync(dto: IGetCartItemRequest): Promise<ICartItem | null> {
+    async getAsync(_dto: IGetCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
-    async updateAsync(dto: IUpdateCartItemRequest): Promise<ICartItem | null> {
+    async updateAsync(_dto: IUpdateCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
-    async deleteAsync(dto: IDeleteCartItemRequest): Promise<ICartItem | null> {
+    async deleteAsync(_dto: IDeleteCartItemRequest): Promise<ICartItem | null> {
         throw new Error("Method not implemented.");
     }
     async getAllPendingAsync({
@@ -92,15 +91,16 @@ export default class PgCartItemDao implements ICartItemDao {
         const sql: QueryConfig = {
             text: `
                 SELECT 
-                    creator_id,
                     order_id,
                     product_id,
+                    status,
+                    creator_id,
                     description,
                     image_src,
                     price,
                     quantity,
-                    title    
-                FROM cart_item_view;
+                    title
+                FROM cart_item_view
                 WHERE status = 'pending'
                     AND creator_id = $1
             `,
@@ -134,7 +134,7 @@ export default class PgCartItemDao implements ICartItemDao {
     }
 
     async mergeCartInOrderAsync(
-        dto: IMergeCartItemsInOrderRequest,
+        _dto: IMergeCartItemsInOrderRequest,
     ): Promise<ICartItemResponse[]> {
         throw new Error("Method not implemented.");
     }
@@ -149,14 +149,7 @@ export default class PgCartItemDao implements ICartItemDao {
             ON CONFLICT
                 DO NOTHING
             RETURNING 
-                creator_id,
-                order_id,
-                product_id,
-                description,
-                image_src,
-                price,
-                quantity,
-                title    
+                *
             `,
             values: [creatorId],
         });
