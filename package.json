@@ -5,15 +5,13 @@
     "type": "module",
     "scripts": {
         "dev": "nodemon -w src/server -x tsx --env-file=.env.development src/server/main.ts",
-        "dev:strict": "npx eslint . && npm run dev",
         "start": "tsx --env-file=.env.production src/server/main.ts",
         "test": "tsx --env-file=.env.development src/server/test.ts",
-        "db:schema": "psql -d silly_store_db -f src/infrastructure/psql/schema.sql -U practice",
-        "db:seed": "tsx --env-file=.env.development src/infrastructure/psql/seed.ts",
-        "db:reset": "npm run db:schema && npm run db:seed",
-        "fresh-test": "npm run db:reset && npm run test",
+        "db:schema": "psql -d silly_store_db -f src/infrastructure/psql/setup/schema.sql -U practice",
+        "db:seed": "tsx --env-file=.env.development src/infrastructure/psql/setup/seed.ts",
+        "db:setup": "npm run db:schema && npm run db:seed",
         "lint": "npx eslint .",
-        "see-big-number": "git ls-files | grep '\\.ts' | grep -v 'test' | xargs wc -l | sort -rn"
+        "stats:lines": "git ls-files | grep '\\.ts' | grep -v 'test' | xargs wc -l | sort -rn"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

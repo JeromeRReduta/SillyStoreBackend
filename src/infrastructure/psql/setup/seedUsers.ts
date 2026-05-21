@@ -1,7 +1,7 @@
-import { Client, QueryConfig } from "pg";
-import { Quantities } from "./seed.ts";
 import bcrypt from "bcrypt";
-import backendLogger from "../../configs/BackendLogger.ts";
+import { Client, QueryConfig } from "pg";
+import backendLogger from "../../../configs/BackendLogger.ts";
+import { Quantities } from "./seed.ts";
 
 export default async function seedUsers(
     db: Client,

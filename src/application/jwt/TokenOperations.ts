@@ -1,11 +1,10 @@
 import jwt from "jsonwebtoken";
-import backendConfigs from "../../configs/BackendConfigs.ts";
+import { UserRole } from "../../../SillyStoreCommon/domain-objects/User.ts";
 import {
     IUserResponse,
     TokenResponse,
 } from "../../../SillyStoreCommon/dtos/userDtos.ts";
-import { UserRole } from "../../../SillyStoreCommon/domain-objects/User.ts";
-import backendLogger from "../../configs/BackendLogger.ts";
+import backendConfigs from "../../configs/BackendConfigs.ts";
 
 const SECRET: jwt.Secret = backendConfigs.jwt.secret;
 
