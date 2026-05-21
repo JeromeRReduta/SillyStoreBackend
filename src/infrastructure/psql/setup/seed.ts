@@ -40,4 +40,4 @@ async function main(): Promise<void> {
     backendLogger.info("Seeding complete! Ending process.");
 }
 
-main();
+await main();
