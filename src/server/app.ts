@@ -1,14 +1,15 @@
-import express from "express";
-import userRouter from "../presentation/routes/users.ts";
-import productRouter from "../presentation/routes/products.ts";
-import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import psqlErrorHandler from "../application/middleware/PsqlErrorHandler.ts";
-import finalErrorHandler from "../application/middleware/FinalErrorHandler.ts";
-import orderRouter from "../presentation/routes/orders.ts";
 import cors from "cors";
+import express from "express";
+import morgan from "morgan";
+import { requireStr } from "../../SillyStoreCommon/configs/ConfigValidation.ts";
+import finalErrorHandler from "../application/middleware/FinalErrorHandler.ts";
 import processToken from "../application/middleware/ProcessToken.ts";
+import psqlErrorHandler from "../application/middleware/PsqlErrorHandler.ts";
 import cartRouter from "../presentation/routes/cart.ts";
+import orderRouter from "../presentation/routes/orders.ts";
+import productRouter from "../presentation/routes/products.ts";
+import userRouter from "../presentation/routes/users.ts";
 
 const app = express();
 app.use(
@@ -16,7 +17,7 @@ app.use(
     morgan("dev"),
     cookieParser(),
     cors({
-        origin: ["http://localhost:5173"],
+        origin: [requireStr("origin", process.env.ORIGIN)],
         credentials: true,
     }),
 );
