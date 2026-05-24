@@ -1,0 +1,107 @@
+[
+    {
+        "id": 1,
+        "title": "Bisexual Lighting",
+        "description": "Wow",
+        "price": 69.69,
+        "image_src": "/bisexual_lighting.webp"
+    },
+    {
+        "id": 2,
+        "title": "League Of Legends (All Of It)",
+        "description": "Just take it",
+        "price": 0.01,
+        "image_src": "/lol.jpg"
+    },
+    {
+        "id": 3,
+        "title": "Unethically Sourced Bones",
+        "description": "Don't.",
+        "price": 200.0,
+        "image_src": "/bones.jpg"
+    },
+    {
+        "id": 4,
+        "title": "Crazy Frog Racer for the PC",
+        "description": "Buy now and get the sequel for free",
+        "price": 20.05,
+        "image_src": "/crazy-frog.png"
+    },
+    {
+        "id": 5,
+        "title": "Barrels Of Crude Oil (17-pack)",
+        "description": "the 17th one is a bonus",
+        "price": 710.0,
+        "image_src": "/crude_oil.webp"
+    },
+    {
+        "id": 6,
+        "title": "My Friend Ivan",
+        "description": "Hi Ivan!",
+        "price": 2000.0,
+        "image_src": "./ivan.png"
+    },
+    {
+        "id": 7,
+        "title": "Totally legit crypto won't rug-pull trust",
+        "description": "Nah this one is real, trust me bro",
+        "price": 221.0,
+        "image_src": "/rug-pull.jpg"
+    },
+    {
+        "id": 8,
+        "title": "Lightly Used Soap Bar",
+        "description": "gross...",
+        "price": 18.99,
+        "image_src": "/lightly-used-soap.webp"
+    },
+    {
+        "id": 9,
+        "title": "The Missing Manga Chapter Where Oda Just Tells You What The One Piece Is",
+        "description": "CAN WE GET MUCH HIGHER? SO HIGH",
+        "price": 1182.0,
+        "image_src": "/One-Piece.jpg"
+    },
+    {
+        "id": 10,
+        "title": "Stewthias, The Perpetual Stew",
+        "description": "I will never forgive the 300 cloves of garlic",
+        "price": 300.0,
+        "image_src": "/stewthias.png"
+    },
+    {
+        "id": 11,
+        "title": "Pork Chop (set of 1)",
+        "description": "Yummy",
+        "price": 6.9,
+        "image_src": "./pork-chop.webp"
+    },
+    {
+        "id": 12,
+        "title": "34 Square Feet of Human Skin",
+        "description": "Don't.",
+        "price": 100,
+        "image_src": "/skin.png"
+    },
+    {
+        "id": 13,
+        "title": "Markiplier",
+        "description": "It's Markiplier",
+        "price": 5.0,
+        "image_src": "/Markiplier.png"
+    },
+    {
+        "id": 14,
+        "title": "Space (1 Square Mile)",
+        "description": "If we just launch it into space on your behalf, then you'll own it! Right? Right?",
+        "price": 1000000.99,
+        "image_src": "./space.png"
+    },
+    {
+        "id": 15,
+        "title": "Belgium.",
+        "description": "Belgium.",
+        "price": 1830.0,
+        "image_src": "/belgium.jpg"
+    }
+]

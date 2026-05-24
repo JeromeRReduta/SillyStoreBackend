@@ -27,5 +27,5 @@ $ npm run db:seed
 # More Info
 
 - [DATABASE SCHEMA as doc](docs/DbResponses.md)
-- [DATABASE SCHEMA FILE](src/infrastructure/psql/schema.sql)
+- [DATABASE SCHEMA FILE](src/infrastructure/psql/setup/schema.sql)
 - [BACKEND API DOCS](docs/backendApi_current.md)
