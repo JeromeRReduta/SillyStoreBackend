@@ -9,7 +9,7 @@
         "test": "tsx --env-file=.env.development src/server/test.ts",
         "db:schema": "psql -d silly_store_db -f src/infrastructure/psql/setup/schema.sql -U practice",
         "db:seed": "tsx --env-file=.env.development src/infrastructure/psql/setup/seed.ts",
-        "db:realSeed": "tsx --env-file=.env.development src/infrastructure/psql/setup/seedOfficial.ts",
+        "db:realSeed": "tsx --env-file=.env.production src/infrastructure/psql/setup/seedOfficial.ts",
         "db:mock": "npm run db:schema && npm run db:seed",
         "db:realSetup": "npm run db:schema && npm run db:realSeed",
         "lint": "npx eslint .",

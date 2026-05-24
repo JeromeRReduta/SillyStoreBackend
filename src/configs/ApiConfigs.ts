@@ -33,7 +33,9 @@ export interface IApiConfigs {
     };
 }
 
-const db: Client | Pool = new Client(backendConfigs.db.databaseUrl);
+const db: Client | Pool = new Client({
+    connectionString: backendConfigs.db.databaseUrl,
+});
 const daos = {
     cartItemDao: new PgCartItemDao(db),
     orderDao: new PgOrderDao(db),
